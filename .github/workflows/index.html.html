@@ -1,0 +1,145 @@
+<!DOCTYPE html>
+<html lang="bn">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nibir Cable Network - Billing App</title>
+  <style>
+    body { font-family: Arial, sans-serif; background:#f5f6fa; margin:0; padding:0; }
+    header { background:#2c3e50; color:#fff; padding:15px; text-align:center; }
+    .container { max-width:1000px; margin:20px auto; background:#fff; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.15); }
+    h2 { margin-top:0; color:#333; }
+    .btn { background:#3498db; color:#fff; padding:8px 15px; border:none; border-radius:5px; cursor:pointer; }
+    .btn:hover { background:#2980b9; }
+    table { width:100%; border-collapse:collapse; margin-top:15px; }
+    table, th, td { border:1px solid #ddd; }
+    th, td { padding:8px; text-align:center; }
+    .paid { color:green; font-weight:bold; }
+    .unpaid { color:red; font-weight:bold; }
+    .download-btn { margin-top:15px; background:#27ae60; }
+  </style>
+</head>
+<body>
+  <header>
+    <h1>নিবির ক্যাবল নেটওয়ার্ক</h1>
+    <p>ইন্টারনেট বিলিং ম্যানেজমেন্ট সিস্টেম</p>
+  </header>
+
+  <div class="container" id="mainApp">
+    <h2>গ্রাহক যোগ করুন</h2>
+    <input type="text" id="customerName" placeholder="গ্রাহকের নাম"> 
+    <input type="text" id="customerMobile" placeholder="মোবাইল নাম্বার"> 
+    <input type="text" id="customerArea" placeholder="এলাকা"> 
+    <input type="number" id="customerSpeed" placeholder="MBPS"> 
+    <input type="number" id="billAmount" placeholder="বিলের পরিমাণ"> 
+    <button class="btn" onclick="addCustomer()">যোগ করুন</button>
+
+    <h2>গ্রাহক তালিকা</h2>
+    <table>
+      <thead>
+        <tr>
+          <th>নাম</th>
+          <th>মোবাইল</th>
+          <th>এলাকা</th>
+          <th>স্পিড</th>
+          <th>বিল</th>
+          <th>স্ট্যাটাস</th>
+          <th>SMS লিংক</th>
+        </tr>
+      </thead>
+      <tbody id="customerTable"></tbody>
+    </table>
+  </div>
+
+  <!-- ইনভয়েস ভিউ -->
+  <div class="container" id="invoiceView" style="display:none;">
+    <h2>গ্রাহক ইনভয়েস</h2>
+    <p><b>নাম:</b> <span id="invName"></span></p>
+    <p><b>মোবাইল:</b> <span id="invMobile"></span></p>
+    <p><b>এলাকা:</b> <span id="invArea"></span></p>
+    <p><b>স্পিড:</b> <span id="invSpeed"></span> Mbps</p>
+    <p><b>বিল:</b> ৳<span id="invBill"></span></p>
+    <p><b>স্ট্যাটাস:</b> <span id="invStatus"></span></p>
+    <button class="btn download-btn" onclick="downloadPDF()">PDF ডাউনলোড করুন</button>
+  </div>
+
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+  <script>
+    let customers = [];
+
+    function addCustomer(){
+      let name = document.getElementById('customerName').value;
+      let mobile = document.getElementById('customerMobile').value;
+      let area = document.getElementById('customerArea').value;
+      let speed = document.getElementById('customerSpeed').value;
+      let bill = document.getElementById('billAmount').value;
+
+      let invoiceId = 'INV-' + new Date().getFullYear() + '-' + (customers.length+1).toString().padStart(4,'0');
+
+      let customer = { id: invoiceId, name, mobile, area, speed, bill, status:'Unpaid' };
+      customers.push(customer);
+      renderTable();
+    }
+
+    function renderTable(){
+      let tbody = document.getElementById('customerTable');
+      tbody.innerHTML = '';
+      customers.forEach(cust => {
+        let smsLink = `https://nibir-network.netlify.app/?view=invoice&id=${cust.id}`;
+        tbody.innerHTML += `<tr>
+          <td>${cust.name}</td>
+          <td>${cust.mobile}</td>
+          <td>${cust.area}</td>
+          <td>${cust.speed} Mbps</td>
+          <td>৳${cust.bill}</td>
+          <td class="${cust.status==='Paid'?'paid':'unpaid'}">${cust.status}</td>
+          <td><a href="${smsLink}" target="_blank">${smsLink}</a></td>
+        </tr>`;
+      });
+    }
+
+    // ইনভয়েস ভিউ লজিক
+    const urlParams = new URLSearchParams(window.location.search);
+    if(urlParams.get('view')==='invoice'){
+      document.getElementById('mainApp').style.display = 'none';
+      document.getElementById('invoiceView').style.display = 'block';
+      let id = urlParams.get('id');
+      // ডেমো জন্য static data
+      let demoCust = {id:id, name:'ডেমো গ্রাহক', mobile:'01300311561', area:'গাজীপুর', speed:'10', bill:'600', status:'Unpaid'};
+      document.getElementById('invName').innerText = demoCust.name;
+      document.getElementById('invMobile').innerText = demoCust.mobile;
+      document.getElementById('invArea').innerText = demoCust.area;
+      document.getElementById('invSpeed').innerText = demoCust.speed;
+      document.getElementById('invBill').innerText = demoCust.bill;
+      document.getElementById('invStatus').innerText = demoCust.status;
+    }
+
+    // PDF Download
+    function downloadPDF(){
+      const { jsPDF } = window.jspdf;
+      const doc = new jsPDF();
+      doc.text("Nibir Cable Network - Invoice", 20, 20);
+      doc.text("নাম: "+document.getElementById('invName').innerText, 20, 40);
+      doc.text("মোবাইল: "+document.getElementById('invMobile').innerText, 20, 50);
+      doc.text("এলাকা: "+document.getElementById('invArea').innerText, 20, 60);
+      doc.text("স্পিড: "+document.getElementById('invSpeed').innerText+" Mbps", 20, 70);
+      doc.text("বিল: ৳"+document.getElementById('invBill').innerText, 20, 80);
+      doc.text("স্ট্যাটাস: "+document.getElementById('invStatus').innerText, 20, 90);
+      doc.save("invoice.pdf");
+    }
+  </script>
+</body>
+</html>
+
+
+<!-- netlify.toml ফাইল (প্রোজেক্ট রুটে রাখতে হবে) -->
+<!--
+[build]
+  publish = "./"
+  command = ""
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+-->

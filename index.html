@@ -1,145 +1,678 @@
 <!DOCTYPE html>
 <html lang="bn">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Nibir Cable Network - Billing App</title>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Internet Billing – Offline HTML App</title>
   <style>
-    body { font-family: Arial, sans-serif; background:#f5f6fa; margin:0; padding:0; }
-    header { background:#2c3e50; color:#fff; padding:15px; text-align:center; }
-    .container { max-width:1000px; margin:20px auto; background:#fff; padding:20px; border-radius:10px; box-shadow:0 2px 6px rgba(0,0,0,0.15); }
-    h2 { margin-top:0; color:#333; }
-    .btn { background:#3498db; color:#fff; padding:8px 15px; border:none; border-radius:5px; cursor:pointer; }
-    .btn:hover { background:#2980b9; }
-    table { width:100%; border-collapse:collapse; margin-top:15px; }
-    table, th, td { border:1px solid #ddd; }
-    th, td { padding:8px; text-align:center; }
-    .paid { color:green; font-weight:bold; }
-    .unpaid { color:red; font-weight:bold; }
-    .download-btn { margin-top:15px; background:#27ae60; }
+    :root{
+      --bg:#0f172a; /* slate-900 */
+      --panel:#111827; /* gray-900 */
+      --muted:#334155; /* slate-700 */
+      --text:#e5e7eb; /* gray-200 */
+      --accent:#22c55e; /* green-500 */
+      --accent-2:#60a5fa; /* blue-400 */
+      --danger:#ef4444; /* red-500 */
+      --warn:#f59e0b; /* amber-500 */
+      --card:#0b1220; /* darker */
+      --shadow:0 10px 30px rgba(0,0,0,.35)
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:linear-gradient(180deg,var(--bg),#020617);color:var(--text);font-family:ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,Ubuntu,"Helvetica Neue",Arial}
+    header{position:sticky;top:0;z-index:10;background:rgba(2,6,23,.8);backdrop-filter:blur(8px);border-bottom:1px solid #1f2937}
+    .wrap{max-width:1200px;margin:0 auto;padding:14px}
+    .brand{display:flex;align-items:center;gap:10px}
+    .brand .logo{width:36px;height:36px;border-radius:12px;background:linear-gradient(135deg,var(--accent),var(--accent-2));box-shadow:var(--shadow)}
+    .brand h1{font-size:18px;margin:0;font-weight:700}
+    .tabs{display:flex;gap:8px;flex-wrap:wrap;margin-top:10px}
+    .tab{padding:8px 12px;border:1px solid #1f2937;background:#0b1220;border-radius:999px;cursor:pointer;user-select:none}
+    .tab.active{background:linear-gradient(135deg,#0ea5e9,#22c55e);color:#001b0a;font-weight:700}
+
+    .grid{display:grid;gap:14px}
+    @media(min-width:900px){.grid.cols-3{grid-template-columns:repeat(3,1fr)}.grid.cols-2{grid-template-columns:repeat(2,1fr)}}
+
+    .card{background:radial-gradient(80% 120% at 50% -20%,rgba(96,165,250,.08),transparent 60%), #0b1220;border:1px solid #1f2937;border-radius:16px;padding:14px;box-shadow:var(--shadow)}
+    .card h3{margin:0 0 10px 0;font-size:16px}
+
+    .stat{display:flex;align-items:center;justify-content:space-between;padding:12px;border:1px dashed #253046;border-radius:14px;background:rgba(2,6,23,.6)}
+
+    .row{display:flex;gap:10px;flex-wrap:wrap}
+    .row > *{flex:1}
+    input,select,button,textarea{width:100%;padding:10px;border-radius:12px;border:1px solid #243042;background:#0a1020;color:var(--text)}
+    input::placeholder,textarea::placeholder{color:#94a3b8}
+
+    button{cursor:pointer}
+    .btn{background:#10192b}
+    .btn.primary{background:linear-gradient(135deg,#22c55e,#16a34a);color:#001b0a;font-weight:700}
+    .btn.blue{background:linear-gradient(135deg,#60a5fa,#3b82f6);color:#001b2a;font-weight:700}
+    .btn.warn{background:linear-gradient(135deg,#f59e0b,#f97316);color:#2b1001;font-weight:700}
+    .btn.danger{background:linear-gradient(135deg,#ef4444,#dc2626);color:#2b0000;font-weight:700}
+
+    table{width:100%;border-collapse:collapse}
+    th,td{border-bottom:1px solid #1f2937;padding:10px;text-align:left}
+    th{font-size:12px;text-transform:uppercase;opacity:.8}
+    tr:hover{background:rgba(59,130,246,.06)}
+    .pill{padding:4px 8px;border-radius:999px;font-size:12px;display:inline-flex;align-items:center;gap:6px}
+    .pill.active{background:rgba(34,197,94,.15);border:1px solid rgba(34,197,94,.35)}
+    .pill.inactive{background:rgba(245,158,11,.12);border:1px solid rgba(245,158,11,.35)}
+    .pill.disconnected{background:rgba(239,68,68,.12);border:1px solid rgba(239,68,68,.35)}
+    .toolbar{display:flex;gap:8px;flex-wrap:wrap}
+
+    .icon-btn{display:inline-flex;align-items:center;gap:6px;padding:8px 10px;border-radius:10px;border:1px solid #243042;background:#0a1020;cursor:pointer}
+
+    .footer{opacity:.7;font-size:12px;margin-top:20px;text-align:center}
+    .hidden{display:none}
+    .mono{font-family:ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, "Liberation Mono", "Courier New", monospace;font-size:12px}
+
+    .kbd{border:1px solid #334155;border-bottom-width:3px;border-radius:6px;padding:2px 6px;background:#0b1220}
   </style>
 </head>
 <body>
   <header>
-    <h1>নিবির ক্যাবল নেটওয়ার্ক</h1>
-    <p>ইন্টারনেট বিলিং ম্যানেজমেন্ট সিস্টেম</p>
+    <div class="wrap">
+      <div class="brand">
+        <div class="logo"></div>
+        <h1>Internet Billing (LocalStorage • Offline HTML)</h1>
+      </div>
+      <div class="tabs" id="tabs"></div>
+    </div>
   </header>
 
-  <div class="container" id="mainApp">
-    <h2>গ্রাহক যোগ করুন</h2>
-    <input type="text" id="customerName" placeholder="গ্রাহকের নাম"> 
-    <input type="text" id="customerMobile" placeholder="মোবাইল নাম্বার"> 
-    <input type="text" id="customerArea" placeholder="এলাকা"> 
-    <input type="number" id="customerSpeed" placeholder="MBPS"> 
-    <input type="number" id="billAmount" placeholder="বিলের পরিমাণ"> 
-    <button class="btn" onclick="addCustomer()">যোগ করুন</button>
+  <main class="wrap" style="padding-top:16px">
+    <section id="view-dashboard" class="view"></section>
+    <section id="view-customers" class="view hidden"></section>
+    <section id="view-isps" class="view hidden"></section>
+    <section id="view-olts" class="view hidden"></section>
+    <section id="view-backup" class="view hidden"></section>
+    <section id="view-help" class="view hidden"></section>
+  </main>
 
-    <h2>গ্রাহক তালিকা</h2>
-    <table>
-      <thead>
-        <tr>
-          <th>নাম</th>
-          <th>মোবাইল</th>
-          <th>এলাকা</th>
-          <th>স্পিড</th>
-          <th>বিল</th>
-          <th>স্ট্যাটাস</th>
-          <th>SMS লিংক</th>
-        </tr>
-      </thead>
-      <tbody id="customerTable"></tbody>
-    </table>
-  </div>
-
-  <!-- ইনভয়েস ভিউ -->
-  <div class="container" id="invoiceView" style="display:none;">
-    <h2>গ্রাহক ইনভয়েস</h2>
-    <p><b>নাম:</b> <span id="invName"></span></p>
-    <p><b>মোবাইল:</b> <span id="invMobile"></span></p>
-    <p><b>এলাকা:</b> <span id="invArea"></span></p>
-    <p><b>স্পিড:</b> <span id="invSpeed"></span> Mbps</p>
-    <p><b>বিল:</b> ৳<span id="invBill"></span></p>
-    <p><b>স্ট্যাটাস:</b> <span id="invStatus"></span></p>
-    <button class="btn download-btn" onclick="downloadPDF()">PDF ডাউনলোড করুন</button>
-  </div>
-
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
   <script>
-    let customers = [];
+  // ======= Simple Offline DB (LocalStorage) =======
+  const DB_KEY = 'ibill_db_v1';
+  const now = new Date();
+  function ym(d){return d.getFullYear()+ '-' + String(d.getMonth()+1).padStart(2,'0')}
+  const CURR_YM = ym(now);
 
-    function addCustomer(){
-      let name = document.getElementById('customerName').value;
-      let mobile = document.getElementById('customerMobile').value;
-      let area = document.getElementById('customerArea').value;
-      let speed = document.getElementById('customerSpeed').value;
-      let bill = document.getElementById('billAmount').value;
+  const defaultDB = {
+    meta:{version:1, createdAt:new Date().toISOString(), lastRunMonth: CURR_YM},
+    isps:[
+      {id: uid(), name:'ISP-1', packages:[{id:uid(), name:'Basic', speedMbps:20, price:600},{id:uid(), name:'Pro', speedMbps:50, price:900}]},
+      {id: uid(), name:'ISP-2', packages:[{id:uid(), name:'Lite', speedMbps:10, price:400}]}
+    ],
+    olts:[{id:uid(), name:'OLT-1', onus:[]}],
+    customers:[
+      {id:uid(), name:'কবির হোসেন', phone:'01300xxxxxx', address:'', status:'active', ispId:null, packageId:null, price:600, due:0, payments:[], lastBilledMonth: CURR_YM}
+    ]
+  };
 
-      let invoiceId = 'INV-' + new Date().getFullYear() + '-' + (customers.length+1).toString().padStart(4,'0');
-
-      let customer = { id: invoiceId, name, mobile, area, speed, bill, status:'Unpaid' };
-      customers.push(customer);
-      renderTable();
+  function loadDB(){
+    const raw = localStorage.getItem(DB_KEY);
+    if(!raw){
+      localStorage.setItem(DB_KEY, JSON.stringify(defaultDB));
+      return structuredClone(defaultDB);
     }
+    try{
+      const db = JSON.parse(raw);
+      if(!db.meta) db.meta = {version:1, createdAt:new Date().toISOString(), lastRunMonth: CURR_YM};
+      return db;
+    }catch(e){
+      alert('ডেটা লোড করতে সমস্যা। Backup/Restore থেকে রিস্টোর করুন।');
+      return structuredClone(defaultDB);
+    }
+  }
+  function saveDB(){
+    localStorage.setItem(DB_KEY, JSON.stringify(DB));
+    // light haptic via console :-)
+    console.log('✓ Saved');
+  }
+  function uid(){return Math.random().toString(36).slice(2,9)}
 
-    function renderTable(){
-      let tbody = document.getElementById('customerTable');
-      tbody.innerHTML = '';
-      customers.forEach(cust => {
-        let smsLink = `https://nibir-network.netlify.app/?view=invoice&id=${cust.id}`;
-        tbody.innerHTML += `<tr>
-          <td>${cust.name}</td>
-          <td>${cust.mobile}</td>
-          <td>${cust.area}</td>
-          <td>${cust.speed} Mbps</td>
-          <td>৳${cust.bill}</td>
-          <td class="${cust.status==='Paid'?'paid':'unpaid'}">${cust.status}</td>
-          <td><a href="${smsLink}" target="_blank">${smsLink}</a></td>
-        </tr>`;
+  let DB = loadDB();
+
+  // ======= Monthly Auto-Billing =======
+  function parseYM(s){const [y,m]=s.split('-').map(Number);return {y,m}}
+  function monthsDiff(a,b){ // a -> b
+    const A=parseYM(a), B=parseYM(b);
+    return (B.y-A.y)*12 + (B.m-A.m);
+  }
+  function runAutoBilling(){
+    const last = DB.meta.lastRunMonth || CURR_YM;
+    const diff = monthsDiff(last, CURR_YM);
+    if(diff<=0) return;
+    DB.customers.forEach(c=>{
+      if(c.status==='active'){
+        const months = Math.max(1,diff); // catch-up
+        c.due = (c.due||0) + (c.price||0)*months;
+      }
+    });
+    DB.meta.lastRunMonth = CURR_YM;
+    saveDB();
+  }
+  runAutoBilling();
+
+  // ======= UI Helpers =======
+  const $ = sel => document.querySelector(sel);
+  const $$ = sel => Array.from(document.querySelectorAll(sel));
+  function fmt(n){return new Intl.NumberFormat('bn-BD').format(Number(n||0))}
+  function taka(n){return fmt(n) + ' ৳'}
+  function statusPill(st){
+    const map={active:['🟢','active','সক্রিয়'], inactive:['🟡','inactive','নিষ্ক্রিয়'], disconnected:['🔴','disconnected','ডিসকানেক্টেড']};
+    const [dot,cls,txt] = map[st]||['⚪','inactive','অজানা'];
+    return `<span class="pill ${cls}">${dot} ${txt}</span>`
+  }
+
+  function renderTabs(){
+    const tabs=[
+      {id:'dashboard',label:'ড্যাশবোর্ড'},
+      {id:'customers',label:'গ্রাহক'},
+      {id:'isps',label:'ISP/প্যাকেজ'},
+      {id:'olts',label:'OLT/ONU'},
+      {id:'backup',label:'ব্যাকআপ/রিস্টোর'},
+      {id:'help',label:'হেল্প'}
+    ];
+    const el = $('#tabs');
+    el.innerHTML = tabs.map(t=>`<div class="tab" data-tab="${t.id}">${t.label}</div>`).join('');
+    el.addEventListener('click',e=>{
+      const t = e.target.closest('.tab');
+      if(!t) return;
+      const id = t.dataset.tab;
+      $$('.tab').forEach(x=>x.classList.toggle('active', x.dataset.tab===id));
+      $$('.view').forEach(v=>v.classList.toggle('hidden', v.id!==`view-${id}`));
+      // lazy renders
+      if(id==='dashboard') renderDashboard();
+      if(id==='customers') renderCustomers();
+      if(id==='isps') renderISPs();
+      if(id==='olts') renderOLTs();
+      if(id==='backup') renderBackup();
+      if(id==='help') renderHelp();
+    });
+    // default
+    $$('.tab')[0].classList.add('active');
+    renderDashboard();
+  }
+
+  // ======= Dashboard =======
+  function renderDashboard(){
+    const v = $('#view-dashboard');
+    const total = DB.customers.length;
+    const active = DB.customers.filter(c=>c.status==='active').length;
+    const disc = DB.customers.filter(c=>c.status==='disconnected').length;
+    const due = DB.customers.reduce((s,c)=>s+(c.due||0),0);
+    const thisMonth = CURR_YM;
+    const paidThisMonth = DB.customers.reduce((s,c)=>s + (c.payments||[]).filter(p=> (p.date||'').startsWith(thisMonth)).reduce((a,b)=>a+(b.amount||0),0),0);
+
+    v.innerHTML = `
+      <div class="grid cols-3">
+        <div class="card">
+          <h3>সংক্ষিপ্ত পরিসংখ্যান</h3>
+          <div class="grid cols-3">
+            <div class="stat"><div>মোট গ্রাহক</div><strong>${fmt(total)}</strong></div>
+            <div class="stat"><div>সক্রিয়</div><strong>${fmt(active)}</strong></div>
+            <div class="stat"><div>ডিসকানেক্টেড</div><strong>${fmt(disc)}</strong></div>
+          </div>
+          <div class="grid cols-2" style="margin-top:10px">
+            <div class="stat"><div>মোট বকেয়া</div><strong>${taka(due)}</strong></div>
+            <div class="stat"><div>এই মাসে আদায়</div><strong>${taka(paidThisMonth)}</strong></div>
+          </div>
+          <div class="toolbar" style="margin-top:10px">
+            <button class="btn primary" id="btn-autobill">অটো বিল চালান (এখনই)</button>
+            <button class="btn blue" id="btn-new-customer">নতুন গ্রাহক</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>ISP ও প্যাকেজ</h3>
+          ${DB.isps.map(i=>`<div class="stat"><div><strong>${i.name}</strong> — ${i.packages.length} প্যাকেজ</div><div class="mono">#${i.id}</div></div>`).join('')}
+          <div class="toolbar" style="margin-top:10px">
+            <button class="btn blue" id="btn-new-isp">নতুন ISP</button>
+          </div>
+        </div>
+
+        <div class="card">
+          <h3>OLT / ONU</h3>
+          ${DB.olts.map(o=>`<div class="stat"><div><strong>${o.name}</strong> — ONU: ${o.onus.length}</div><div class="mono">#${o.id}</div></div>`).join('')}
+          <div class="toolbar" style="margin-top:10px">
+            <button class="btn blue" id="btn-new-olt">নতুন OLT</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    $('#btn-autobill').onclick = ()=>{ DB.meta.lastRunMonth = parseYM(DB.meta.lastRunMonth).y+ '-' + String(parseYM(DB.meta.lastRunMonth).m).padStart(2,'0'); // keep
+      // bill one month instantly
+      DB.customers.forEach(c=>{ if(c.status==='active') c.due = (c.due||0) + (c.price||0) });
+      saveDB();
+      renderDashboard();
+      alert('✅ এক মাসের বিল যোগ হয়েছে (সক্রিয় গ্রাহকদের জন্য)।');
+    }
+    $('#btn-new-customer').onclick = ()=> openCustomerForm();
+    $('#btn-new-isp').onclick = ()=> openISPForm();
+    $('#btn-new-olt').onclick = ()=> openOLTForm();
+  }
+
+  // ======= Customers =======
+  function renderCustomers(){
+    const v = $('#view-customers');
+    const rows = DB.customers.map(c=>{
+      const isp = DB.isps.find(x=>x.id===c.ispId);
+      const pkg = isp?.packages?.find(p=>p.id===c.packageId);
+      return `
+        <tr>
+          <td class="mono">${c.id}</td>
+          <td><strong>${c.name||''}</strong><div class="mono" style="opacity:.7">${c.phone||''}</div></td>
+          <td>${statusPill(c.status||'inactive')}</td>
+          <td>${isp? isp.name: '—'}</td>
+          <td>${pkg? `${pkg.name} • ${pkg.speedMbps} Mbps`: '—'}</td>
+          <td>${taka(c.price||0)}</td>
+          <td><strong>${taka(c.due||0)}</strong></td>
+          <td>
+            <div class="row">
+              <button class="icon-btn" onclick="pay('${c.id}')">💳 পেমেন্ট</button>
+              <button class="icon-btn" onclick="toggleStatus('${c.id}')">🔁 স্ট্যাটাস</button>
+              <button class="icon-btn" onclick="openCustomerForm('${c.id}')">✏️ এডিট</button>
+              <button class="icon-btn" onclick="delCustomer('${c.id}')">🗑️ ডিলিট</button>
+            </div>
+          </td>
+        </tr>`
+    }).join('');
+
+    v.innerHTML = `
+      <div class="card">
+        <div class="row">
+          <input id="search" placeholder="খুঁজুন (নাম/মোবাইল)" />
+          <select id="filterStatus">
+            <option value="">সব স্ট্যাটাস</option>
+            <option value="active">সক্রিয়</option>
+            <option value="inactive">নিষ্ক্রিয়</option>
+            <option value="disconnected">ডিসকানেক্টেড</option>
+          </select>
+          <button class="btn blue" onclick="openCustomerForm()">➕ নতুন গ্রাহক</button>
+        </div>
+      </div>
+      <div class="card" style="overflow:auto">
+        <table>
+          <thead>
+            <tr>
+              <th>ID</th><th>নাম</th><th>স্ট্যাটাস</th><th>ISP</th><th>প্যাকেজ</th><th>মাসিক</th><th>বকেয়া</th><th>অ্যাকশন</th>
+            </tr>
+          </thead>
+          <tbody id="custRows">${rows}</tbody>
+        </table>
+      </div>
+    `;
+
+    // search/filter
+    $('#search').oninput = $('#filterStatus').onchange = ()=>{
+      const q = ($('#search').value||'').toLowerCase();
+      const fs = $('#filterStatus').value;
+      $$('#custRows tr').forEach(tr=>{
+        const hay = tr.innerText.toLowerCase();
+        const showQ = !q || hay.includes(q);
+        const st = fs? tr.querySelector('.pill')?.classList.contains(fs) : true;
+        tr.style.display = (showQ && st)? '' : 'none';
       });
     }
+  }
 
-    // ইনভয়েস ভিউ লজিক
-    const urlParams = new URLSearchParams(window.location.search);
-    if(urlParams.get('view')==='invoice'){
-      document.getElementById('mainApp').style.display = 'none';
-      document.getElementById('invoiceView').style.display = 'block';
-      let id = urlParams.get('id');
-      // ডেমো জন্য static data
-      let demoCust = {id:id, name:'ডেমো গ্রাহক', mobile:'01300311561', area:'গাজীপুর', speed:'10', bill:'600', status:'Unpaid'};
-      document.getElementById('invName').innerText = demoCust.name;
-      document.getElementById('invMobile').innerText = demoCust.mobile;
-      document.getElementById('invArea').innerText = demoCust.area;
-      document.getElementById('invSpeed').innerText = demoCust.speed;
-      document.getElementById('invBill').innerText = demoCust.bill;
-      document.getElementById('invStatus').innerText = demoCust.status;
+  function openCustomerForm(id){
+    const isEdit = !!id;
+    const c = isEdit? DB.customers.find(x=>x.id===id) : {id:uid(), name:'', phone:'', address:'', status:'active', ispId:'', packageId:'', price:0, due:0, payments:[], lastBilledMonth: CURR_YM};
+    const ispOptions = DB.isps.map(i=>`<option value="${i.id}" ${c.ispId===i.id?'selected':''}>${i.name}</option>`).join('');
+    const pkgOptions = (DB.isps.find(i=>i.id===c.ispId)?.packages||[]).map(p=>`<option value="${p.id}" ${c.packageId===p.id?'selected':''}>${p.name} • ${p.speedMbps} Mbps • ${taka(p.price)}</option>`).join('');
+
+    const html = `
+      <div class="card">
+        <h3>${isEdit? 'গ্রাহক এডিট' : 'নতুন গ্রাহক'}</h3>
+        <div class="row">
+          <input id="f-name" placeholder="নাম" value="${c.name||''}">
+          <input id="f-phone" placeholder="মোবাইল" value="${c.phone||''}">
+        </div>
+        <div class="row">
+          <select id="f-status">
+            <option value="active" ${c.status==='active'?'selected':''}>সক্রিয়</option>
+            <option value="inactive" ${c.status==='inactive'?'selected':''}>নিষ্ক্রিয়</option>
+            <option value="disconnected" ${c.status==='disconnected'?'selected':''}>ডিসকানেক্টেড</option>
+          </select>
+          <input id="f-address" placeholder="ঠিকানা" value="${c.address||''}">
+        </div>
+        <div class="row">
+          <select id="f-isp"><option value="">ISP নির্বাচন</option>${ispOptions}</select>
+          <select id="f-pkg"><option value="">প্যাকেজ নির্বাচন</option>${pkgOptions}</select>
+          <input id="f-price" type="number" placeholder="মাসিক মূল্য (৳)" value="${Number(c.price||0)}">
+        </div>
+        <div class="toolbar">
+          <button class="btn primary" id="f-save">${isEdit?'সেভ':'এড'}</button>
+          <button class="btn" id="f-cancel">বাতিল</button>
+        </div>
+      </div>
+    `;
+
+    const v = $('#view-customers');
+    v.innerHTML = html + v.innerHTML; // push on top
+
+    $('#f-isp').onchange = (e)=>{
+      const isp = DB.isps.find(i=>i.id===e.target.value);
+      const pkgs = isp? isp.packages:[];
+      $('#f-pkg').innerHTML = `<option value="">প্যাকেজ নির্বাচন</option>` + pkgs.map(p=>`<option value="${p.id}">${p.name} • ${p.speedMbps} Mbps • ${taka(p.price)}</option>`).join('');
+      if(pkgs[0]){
+        $('#f-pkg').value = pkgs[0].id;
+        $('#f-price').value = pkgs[0].price;
+      }
+    }
+    $('#f-pkg').onchange = (e)=>{
+      const isp = DB.isps.find(i=>i.id===($('#f-isp').value));
+      const p = isp?.packages?.find(x=>x.id===e.target.value);
+      if(p) $('#f-price').value = p.price;
     }
 
-    // PDF Download
-    function downloadPDF(){
-      const { jsPDF } = window.jspdf;
-      const doc = new jsPDF();
-      doc.text("Nibir Cable Network - Invoice", 20, 20);
-      doc.text("নাম: "+document.getElementById('invName').innerText, 20, 40);
-      doc.text("মোবাইল: "+document.getElementById('invMobile').innerText, 20, 50);
-      doc.text("এলাকা: "+document.getElementById('invArea').innerText, 20, 60);
-      doc.text("স্পিড: "+document.getElementById('invSpeed').innerText+" Mbps", 20, 70);
-      doc.text("বিল: ৳"+document.getElementById('invBill').innerText, 20, 80);
-      doc.text("স্ট্যাটাস: "+document.getElementById('invStatus').innerText, 20, 90);
-      doc.save("invoice.pdf");
+    $('#f-save').onclick = ()=>{
+      c.name = $('#f-name').value.trim();
+      c.phone = $('#f-phone').value.trim();
+      c.address = $('#f-address').value.trim();
+      c.status = $('#f-status').value;
+      c.ispId = $('#f-isp').value || null;
+      c.packageId = $('#f-pkg').value || null;
+      c.price = Number($('#f-price').value)||0;
+      if(isEdit){
+        const idx = DB.customers.findIndex(x=>x.id===c.id);
+        DB.customers[idx] = c;
+      }else{
+        DB.customers.push(c);
+      }
+      saveDB();
+      renderCustomers();
+      alert('✅ সেভ হয়েছে');
     }
+    $('#f-cancel').onclick = ()=> renderCustomers();
+  }
+
+  function toggleStatus(id){
+    const c = DB.customers.find(x=>x.id===id);
+    const order = ['active','inactive','disconnected'];
+    const i = (order.indexOf(c.status)+1)%order.length;
+    c.status = order[i];
+    saveDB();
+    renderCustomers();
+  }
+  function delCustomer(id){
+    if(!confirm('ডিলিট করবেন?')) return;
+    DB.customers = DB.customers.filter(x=>x.id!==id);
+    saveDB();
+    renderCustomers();
+  }
+  function pay(id){
+    const c = DB.customers.find(x=>x.id===id);
+    const amt = Number(prompt(`কত টাকা নিবেন? (বকেয়া: ${c.due})`, c.due||0));
+    if(!amt) return;
+    c.due = Math.max(0,(c.due||0)-amt);
+    c.payments = c.payments||[];
+    c.payments.push({id:uid(), amount:amt, date:new Date().toISOString()});
+    saveDB();
+    renderCustomers();
+  }
+  window.pay = pay; window.toggleStatus = toggleStatus; window.delCustomer = delCustomer; window.openCustomerForm = openCustomerForm;
+
+  // ======= ISPs & Packages =======
+  function renderISPs(){
+    const v = $('#view-isps');
+    v.innerHTML = `
+      <div class="card">
+        <div class="toolbar">
+          <button class="btn blue" onclick="openISPForm()">➕ নতুন ISP</button>
+        </div>
+      </div>
+      ${DB.isps.map(i=>`
+        <div class="card">
+          <h3>${i.name} <span class="mono">#${i.id}</span></h3>
+          <div class="row">
+            <input id="n-${i.id}" placeholder="ISP নাম" value="${i.name}">
+            <button class="btn primary" onclick="saveISPName('${i.id}')">সেভ</button>
+            <button class="btn danger" onclick="deleteISP('${i.id}')">ডিলিট</button>
+          </div>
+          <h3 style="margin-top:10px">প্যাকেজ</h3>
+          <div>
+            ${i.packages.map(p=>`
+              <div class="stat">
+                <div><strong>${p.name}</strong> — ${p.speedMbps} Mbps — ${taka(p.price)} <span class="mono">#${p.id}</span></div>
+                <div class="row" style="max-width:320px">
+                  <button class="btn" onclick="editPkg('${i.id}','${p.id}')">✏️ এডিট</button>
+                  <button class="btn danger" onclick="delPkg('${i.id}','${p.id}')">🗑️</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          <div class="row" style="margin-top:10px">
+            <input id="pn-${i.id}" placeholder="প্যাকেজ নাম">
+            <input id="ps-${i.id}" type="number" placeholder="স্পিড (Mbps)">
+            <input id="pp-${i.id}" type="number" placeholder="দাম (৳)">
+            <button class="btn blue" onclick="addPkg('${i.id}')">➕ যোগ</button>
+          </div>
+        </div>
+      `).join('')}
+    `;
+  }
+  function openISPForm(){
+    const name = prompt('ISP নাম?');
+    if(!name) return;
+    DB.isps.push({id:uid(), name, packages:[]});
+    saveDB();
+    renderISPs();
+  }
+  function saveISPName(id){
+    const el = document.getElementById('n-'+id);
+    const isp = DB.isps.find(i=>i.id===id);
+    isp.name = el.value.trim()||isp.name;
+    saveDB();
+    renderISPs();
+  }
+  function deleteISP(id){
+    if(!confirm('ISP ডিলিট করবেন?')) return;
+    DB.isps = DB.isps.filter(i=>i.id!==id);
+    // detach from customers
+    DB.customers.forEach(c=>{ if(c.ispId===id){ c.ispId=null; c.packageId=null; }});
+    saveDB();
+    renderISPs();
+  }
+  function addPkg(ispId){
+    const name = document.getElementById('pn-'+ispId).value.trim();
+    const speed = Number(document.getElementById('ps-'+ispId).value||0);
+    const price = Number(document.getElementById('pp-'+ispId).value||0);
+    if(!name) return alert('প্যাকেজ নাম দিন');
+    const isp = DB.isps.find(i=>i.id===ispId);
+    isp.packages.push({id:uid(), name, speedMbps:speed, price});
+    saveDB();
+    renderISPs();
+  }
+  function editPkg(ispId,pkgId){
+    const isp = DB.isps.find(i=>i.id===ispId);
+    const p = isp.packages.find(x=>x.id===pkgId);
+    const name = prompt('প্যাকেজ নাম', p.name) || p.name;
+    const speed = Number(prompt('স্পিড (Mbps)', p.speedMbps) || p.speedMbps);
+    const price = Number(prompt('দাম (৳)', p.price) || p.price);
+    Object.assign(p, {name, speedMbps:speed, price});
+    saveDB();
+    renderISPs();
+  }
+  function delPkg(ispId,pkgId){
+    const isp = DB.isps.find(i=>i.id===ispId);
+    isp.packages = isp.packages.filter(x=>x.id!==pkgId);
+    // detach from customers if selected
+    DB.customers.forEach(c=>{ if(c.packageId===pkgId){ c.packageId=null; }});
+    saveDB();
+    renderISPs();
+  }
+  window.openISPForm=openISPForm; window.saveISPName=saveISPName; window.deleteISP=deleteISP; window.addPkg=addPkg; window.editPkg=editPkg; window.delPkg=delPkg;
+
+  // ======= OLT / ONU =======
+  function renderOLTs(){
+    const v = $('#view-olts');
+    v.innerHTML = `
+      <div class="card">
+        <div class="toolbar">
+          <button class="btn blue" onclick="openOLTForm()">➕ নতুন OLT</button>
+        </div>
+      </div>
+      ${DB.olts.map(o=>`
+        <div class="card">
+          <h3>${o.name} <span class="mono">#${o.id}</span></h3>
+          <div class="row">
+            <input id="on-${o.id}" placeholder="OLT নাম" value="${o.name}">
+            <button class="btn primary" onclick="saveOLTName('${o.id}')">সেভ</button>
+            <button class="btn danger" onclick="deleteOLT('${o.id}')">ডিলিট</button>
+          </div>
+          <h3 style="margin-top:10px">ONU তালিকা</h3>
+          <div>
+            ${o.onus.map(u=>`
+              <div class="stat">
+                <div><strong>${u.name}</strong> — Rx Optical Power: <strong>${u.rx??'—'}</strong> dBm <span class="mono">#${u.id}</span></div>
+                <div class="row" style="max-width:320px">
+                  <button class="btn" onclick="editONU('${o.id}','${u.id}')">✏️</button>
+                  <button class="btn danger" onclick="delONU('${o.id}','${u.id}')">🗑️</button>
+                </div>
+              </div>
+            `).join('')}
+          </div>
+          <div class="row" style="margin-top:10px">
+            <input id="un-${o.id}" placeholder="ONU নাম">
+            <input id="ur-${o.id}" type="number" step="0.01" placeholder="Rx Power (dBm)">
+            <button class="btn blue" onclick="addONU('${o.id}')">➕ ONU যোগ</button>
+          </div>
+        </div>
+      `).join('')}
+    `;
+  }
+  function openOLTForm(){
+    const name = prompt('OLT নাম?');
+    if(!name) return;
+    DB.olts.push({id:uid(), name, onus:[]});
+    saveDB();
+    renderOLTs();
+  }
+  function saveOLTName(id){
+    const o = DB.olts.find(x=>x.id===id);
+    o.name = document.getElementById('on-'+id).value.trim()||o.name;
+    saveDB();
+    renderOLTs();
+  }
+  function deleteOLT(id){
+    if(!confirm('OLT ডিলিট করবেন?')) return;
+    DB.olts = DB.olts.filter(x=>x.id!==id);
+    saveDB();
+    renderOLTs();
+  }
+  function addONU(oltId){
+    const name = document.getElementById('un-'+oltId).value.trim();
+    const rx = parseFloat(document.getElementById('ur-'+oltId).value);
+    if(!name) return alert('ONU নাম দিন');
+    const o = DB.olts.find(x=>x.id===oltId);
+    o.onus.push({id:uid(), name, rx});
+    saveDB();
+    renderOLTs();
+  }
+  function editONU(oltId, onuId){
+    const o = DB.olts.find(x=>x.id===oltId);
+    const u = o.onus.find(x=>x.id===onuId);
+    const name = prompt('ONU নাম', u.name) || u.name;
+    const rx = parseFloat(prompt('Rx Power (dBm)', u.rx??'') || u.rx);
+    Object.assign(u,{name, rx});
+    saveDB();
+    renderOLTs();
+  }
+  function delONU(oltId, onuId){
+    const o = DB.olts.find(x=>x.id===oltId);
+    o.onus = o.onus.filter(x=>x.id!==onuId);
+    saveDB();
+    renderOLTs();
+  }
+  window.openOLTForm=openOLTForm; window.saveOLTName=saveOLTName; window.deleteOLT=deleteOLT; window.addONU=addONU; window.editONU=editONU; window.delONU=delONU;
+
+  // ======= Backup / Restore =======
+  function renderBackup(){
+    const v = $('#view-backup');
+    v.innerHTML = `
+      <div class="grid cols-2">
+        <div class="card">
+          <h3>ব্যাকআপ</h3>
+          <p>লোকাল স্টোরেজের সব ডেটা JSON ফাইল হিসেবে ডাউনলোড হবে।</p>
+          <button class="btn primary" id="btn-backup">⬇️ ব্যাকআপ ডাউনলোড</button>
+        </div>
+        <div class="card">
+          <h3>রিস্টোর</h3>
+          <p>পূর্বের ব্যাকআপ JSON ফাইল আপলোড করুন।</p>
+          <input type="file" id="file-restore" accept="application/json">
+          <div class="toolbar" style="margin-top:10px">
+            <button class="btn warn" id="btn-restore">⬆️ রিস্টোর</button>
+            <button class="btn danger" id="btn-clear">❌ লোকাল ডেটা ক্লিয়ার</button>
+          </div>
+        </div>
+      </div>
+    `;
+
+    $('#btn-backup').onclick = ()=>{
+      const blob = new Blob([JSON.stringify(DB,null,2)],{type:'application/json'});
+      const a = document.createElement('a');
+      a.href = URL.createObjectURL(blob);
+      a.download = `ibill-backup-${new Date().toISOString().slice(0,10)}.json`;
+      a.click();
+      URL.revokeObjectURL(a.href);
+    }
+    $('#btn-restore').onclick = ()=>{
+      const f = $('#file-restore').files?.[0];
+      if(!f) return alert('ফাইল সিলেক্ট করুন');
+      const reader = new FileReader();
+      reader.onload = ()=>{
+        try{
+          const data = JSON.parse(reader.result);
+          DB = data; saveDB();
+          alert('✅ রিস্টোর হয়েছে');
+          location.reload();
+        }catch(e){ alert('ফাইলটি সঠিক নয়'); }
+      }
+      reader.readAsText(f);
+    }
+    $('#btn-clear').onclick = ()=>{
+      if(!confirm('সকল লোকাল ডেটা মুছে ফেলবেন?')) return;
+      localStorage.removeItem(DB_KEY);
+      DB = structuredClone(defaultDB);
+      saveDB();
+      location.reload();
+    }
+  }
+
+  // ======= Help =======
+  function renderHelp(){
+    const v = $('#view-help');
+    v.innerHTML = `
+      <div class="card">
+        <h3>ব্যবহারবিধি</h3>
+        <ul>
+          <li><span class="kbd">গ্রাহক</span> ট্যাব থেকে Add/Edit করুন। Active থাকলে মাসে মাসে অটো বিল যোগ হবে।</li>
+          <li>পেমেন্ট নিতে গ্রাহকের পাশে <b>💳 পেমেন্ট</b> ক্লিক করুন। আংশিক/পূর্ণ—যেকোনো পরিমাণ দিন।</li>
+          <li><span class="kbd">ISP/প্যাকেজ</span> এ আপনার ৪টি ISP ও তাদের প্যাকেজ/দাম যোগ করুন।</li>
+          <li><span class="kbd">OLT/ONU</span> এ ONU যোগ করে Rx Optical Power (dBm) লিখুন।</li>
+          <li><span class="kbd">ব্যাকআপ/রিস্টোর</span> থেকে JSON ব্যাকআপ নিন বা পুনরুদ্ধার করুন।</li>
+          <li>সবকিছু আপনার ব্রাউজারের <i>LocalStorage</i> এ সেভ থাকে — ইন্টারনেট ছাড়াই কাজ করে।</li>
+        </ul>
+        <p class="mono">ভার্সন: 1.0 • অটো-বিলিং মাস পরিবর্তনে ট্রিগার হয়। প্রয়োজনে ড্যাশবোর্ডে "অটো বিল চালান" চাপুন।</p>
+      </div>
+    `;
+  }
+
+  // ======= New OLT quick from Dashboard =======
+  function openOLTForm(){
+    const name = prompt('OLT নাম দিন');
+    if(!name) return;
+    DB.olts.push({id:uid(), name, onus:[]});
+    saveDB();
+    renderOLTs();
+  }
+
+  // init
+  renderTabs();
   </script>
+
+  <footer class="footer wrap">Made for you — single-file, offline, autosave. 🧡</footer>
 </body>
 </html>
-
-
-<!-- netlify.toml ফাইল (প্রোজেক্ট রুটে রাখতে হবে) -->
-<!--
-[build]
-  publish = "./"
-  command = ""
-
-[[redirects]]
-  from = "/*"
-  to = "/index.html"
-  status = 200
--->
